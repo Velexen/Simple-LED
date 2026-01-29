@@ -288,6 +288,15 @@
       "unconnected-(J1-IO21-Pad26)": [
         "RED_PWM"
       ],
+      "unconnected-(J1-IO25-Pad8)": [
+        "Color_Btn"
+      ],
+      "unconnected-(J1-IO33-Pad7)": [
+        "Power_Sw"
+      ],
+      "unconnected-(J1-IO34-Pad4)": [
+        "Color_Ctl"
+      ],
       "unconnected-(R1-Pad1)": [
         "RED_PWM"
       ],
@@ -296,6 +305,15 @@
       ],
       "unconnected-(R3-Pad1)": [
         "BLUE_PWM"
+      ],
+      "unconnected-(R4-Pad2)": [
+        "Color_Btn"
+      ],
+      "unconnected-(R5-Pad2)": [
+        "Sleep_Ctl"
+      ],
+      "unconnected-(RV1-Pad2)": [
+        "Color_Ctl"
       ]
     },
     "netclass_patterns": []
