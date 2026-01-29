@@ -83,3 +83,4 @@ schematics/esp_led/#auto_saved_files#
 .vscode/launch.json
 .vscode/settings.json
 .devcontainer/Dockerfile
+*.zip
