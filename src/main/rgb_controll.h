@@ -23,4 +23,4 @@ extern ledc_channel_t led_channels[3];
 
 void setupChannels(void);
 void setDutyCycle(ledc_channel_t channel, uint32_t duty_cycle);
-void setColorByRGB(uint8_t colors[3], ledc_channel_t led_channels[3]);
+void setColorByRGB(uint8_t colors[3], ledc_channel_t led_channels[3], uint8_t brightness, bool light_on);

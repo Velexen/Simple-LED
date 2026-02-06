@@ -77,15 +77,34 @@ void setDutyCycle(ledc_channel_t channel, uint32_t duty_cycle)
 }
 
 
-void setColorByRGB(uint8_t colors[3], ledc_channel_t led_channels[3])
+void setColorByRGB(uint8_t colors[3], ledc_channel_t led_channels[3], uint8_t brightness, bool light_on)
 {
+    if (!light_on) 
+    {
+        colors[0] = colors[1] = colors[2] = 0;
+    } else 
+    {
+        colors[0] = (colors[0] * brightness) / 255;
+        colors[1] = (colors[1] * brightness) / 255;
+        colors[2] = (colors[2] * brightness) / 255;
+    }
+
     setDutyCycle(led_channels[0], colors[0]);
     setDutyCycle(led_channels[1], colors[1]);
     setDutyCycle(led_channels[2], colors[2]);
 
-    char json[64];
-    snprintf(json, sizeof(json),
-    "{\"r\":%d,\"g\":%d,\"b\":%d}", colors[0], colors[1], colors[2]);
+    char json[128];
+
+    snprintf(
+        json,
+        sizeof(json),
+        "{\"state\":\"%s\",\"brightness\":%d,\"color\":{\"r\":%d,\"g\":%d,\"b\":%d}}",
+        light_on ? "ON" : "OFF",
+        brightness,
+        colors[0],
+        colors[1],
+        colors[2]
+    );
 
     mqttPublishState(
         "home/esp32/rgb/state",

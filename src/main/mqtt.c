@@ -19,16 +19,38 @@ static void mqttEventHandler(void *arg,
     switch (event_id)
     {
     case MQTT_EVENT_CONNECTED:
-        ESP_LOGI(TAG, "Connected");
+        ESP_LOGI(TAG, "MQTT connected");
 
-        esp_mqtt_client_subscribe(client, "home/esp32/rgb/set", 1);
-        esp_mqtt_client_publish(client, "home/esp32/status", "online", 0, 1, true);
+        const char *discovery_topic = "homeassistant/light/esp32_rgb/config";
+        const char *payload = "{\"name\":\"ESP32 RGB\","
+                            "\"schema\":\"json\","
+                            "\"command_topic\":\"home/esp32/rgb/set\","
+                            "\"state_topic\":\"home/esp32/rgb/state\","
+                            "\"availability_topic\":\"home/esp32/availability\","
+                            "\"payload_available\":\"online\","
+                            "\"payload_not_available\":\"offline\","
+                            "\"supported_color_modes\":[\"rgb\"]}";
+
+        esp_mqtt_client_publish(client, discovery_topic, payload, 0, 1, true);
+
         esp_mqtt_client_publish(
-                                client,
-                                "home/esp32/rgb/state",
-                                "{\"r\":0,\"g\":0,\"b\":0}",
-                                0, 1, true
-                            );
+            client,
+            "home/esp32/availability",
+            "online",
+            0, 1, true
+        );
+
+        esp_mqtt_client_subscribe(
+            client, "home/esp32/rgb/set", 1
+        );
+
+        esp_mqtt_client_publish(
+            client,
+            "home/esp32/rgb/state",
+            "{\"state\":\"ON\",\"brightness\":255,"
+            "\"color\":{\"r\":0,\"g\":0,\"b\":0}}", 
+            0, 1, true
+        );
         break;
     
     case MQTT_EVENT_DATA:
@@ -40,28 +62,40 @@ static void mqttEventHandler(void *arg,
             memcpy(payload, event->data, event->data_len);
             payload[event->data_len] = '\0';
 
-            cJSON *json = cJSON_Parse(payload);
-            if (!json) break;
+            cJSON *root = cJSON_Parse(payload);
+            if (!root) break;
 
-            cJSON *r = cJSON_GetObjectItem(json, "r");
-            cJSON *g = cJSON_GetObjectItem(json, "g");
-            cJSON *b = cJSON_GetObjectItem(json, "b");
-            
-            if (!cJSON_IsNumber(r) ||
-                !cJSON_IsNumber(g) ||
-                !cJSON_IsNumber(b)) {
-                cJSON_Delete(json);
-                break;
+            bool light_on = true;
+            cJSON *state = cJSON_GetObjectItem(root, "state");            
+            if (cJSON_IsString(state) && state->valuestring) 
+            {
+                if (strcmp(state->valuestring, "OFF") == 0) 
+                {
+                    light_on = false;
+                }
             }
 
-            uint8_t colors[3] = {
-                r->valueint,
-                g->valueint,
-                b->valueint
-            };
+            uint8_t brightness = 255;
+            cJSON *j_brightness = cJSON_GetObjectItem(root, "brightness");
+            if(cJSON_IsNumber(j_brightness))
+            {
+                brightness = j_brightness->valueint;
+            }
 
-            setColorByRGB(colors, led_channels);
-            cJSON_Delete(json);
+            uint8_t rgb[3] = {0, 0, 0};
+            cJSON *color = cJSON_GetObjectItem(root, "color");
+            if (cJSON_IsObject(color)) {
+                cJSON *r = cJSON_GetObjectItem(color, "r");
+                cJSON *g = cJSON_GetObjectItem(color, "g");
+                cJSON *b = cJSON_GetObjectItem(color, "b");
+
+                if (cJSON_IsNumber(r)) rgb[0] = r->valueint;
+                if (cJSON_IsNumber(g)) rgb[1] = g->valueint;
+                if (cJSON_IsNumber(b)) rgb[2] = b->valueint;
+            }
+
+            setColorByRGB(rgb, led_channels, brightness, light_on);
+            cJSON_Delete(root);
         }
         break;
 
@@ -70,7 +104,6 @@ static void mqttEventHandler(void *arg,
         break;
     }
 }
-
 
 void mqttStart(void)
 {
@@ -96,7 +129,6 @@ void mqttStart(void)
 
     printf("\nMQTT Setup...\n");
 }
-
 
 void mqttPublishState(const char *topic, const char *payload, bool retain)
 {

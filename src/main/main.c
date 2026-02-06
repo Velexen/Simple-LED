@@ -16,7 +16,7 @@
 // While digital refers to Home Assistant or something like that which will come at a later stage
 
 #define ADC_THRESHOLD 20        // minimum ADC change to be considered significant
-#define ADC_IDLE_TIMEOUT 10000  //10 Seconds Timer for Potentiometer
+#define ADC_IDLE_TIMEOUT 5000  //10 Seconds Timer for Potentiometer
 
 typedef enum {
     MODE_MANUAL,
@@ -32,8 +32,11 @@ void app_main(void)
     uint8_t analog_selected_color = 0;
     uint8_t previous_button_state = 0;
     int analog_previous_adc = 0;
+
     uint8_t current_colors[3] = {0,0,0};
-    
+    uint8_t brightness = 255; 
+    bool light_on = true;
+
     control_mode_t mode = MODE_REMOTE;
     unsigned long last_change_time = esp_timer_get_time() / 1000;
     unsigned long last_adc_activity = esp_timer_get_time() / 1000;
@@ -70,12 +73,12 @@ void app_main(void)
                 current_colors[analog_selected_color] = value;
 
                 printf("New adc: %d\n", adc_raw); //For Debugging
-                setColorByRGB(current_colors, led_channels);
+                setColorByRGB(current_colors, led_channels, brightness, light_on);
             } 
             else if(current_time - last_adc_activity >= ADC_IDLE_TIMEOUT)
             {
                 mode = MODE_REMOTE;
-                printf("Manual input idle, switching to REMOTE mode\n");
+                printf("MANUAL input idle, switching to REMOTE mode\n");
             }
         }
 
@@ -84,7 +87,7 @@ void app_main(void)
         {
             last_change_time = current_time;
 
-            analog_selected_color = (analog_selected_color + 1) % 3;
+            analog_selected_color = (analog_selected_color + 1) % 4;
             printf("Selected color: %d\n", analog_selected_color);
 
             mode = MODE_MANUAL;
