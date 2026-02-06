@@ -1,3 +1,4 @@
+#pragma once
 #include <stdio.h>
 #include "driver/ledc.h"
 #include "esp_adc/adc_oneshot.h"
@@ -17,17 +18,9 @@
 #define FREQUENCY 5000
 #define RESOLUTION LEDC_TIMER_8_BIT
 
-extern ledc_timer_config_t timer_config;
-extern ledc_channel_config_t channel_config_red;
-extern ledc_channel_config_t channel_config_green;
-extern ledc_channel_config_t channel_config_blue;
-
 extern adc_oneshot_unit_handle_t adc1_handle;
-extern adc_oneshot_unit_init_cfg_t init_cfg;
-extern adc_oneshot_chan_cfg_t config;
+extern ledc_channel_t led_channels[3];
 
-void setupChannels();
-
+void setupChannels(void);
 void setDutyCycle(ledc_channel_t channel, uint32_t duty_cycle);
-
 void setColorByRGB(uint8_t colors[3], ledc_channel_t led_channels[3]);

@@ -279,6 +279,15 @@
     },
     "net_colors": null,
     "netclass_assignments": {
+      "Net-(Q1-G)": [
+        "BLUE_PWM"
+      ],
+      "Net-(Q2-G)": [
+        "RED_PWM"
+      ],
+      "Net-(Q3-G)": [
+        "GREEN_PWM"
+      ],
       "unconnected-(J1-IO18-Pad24)": [
         "BLUE_PWM"
       ],
@@ -310,7 +319,7 @@
         "Color_Btn"
       ],
       "unconnected-(R5-Pad2)": [
-        "Sleep_Ctl"
+        "Power_Sw"
       ],
       "unconnected-(RV1-Pad2)": [
         "Color_Ctl"

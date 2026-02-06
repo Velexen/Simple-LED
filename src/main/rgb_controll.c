@@ -1,9 +1,13 @@
 #include "rgb_controll.h"
 #include "esp_err.h"
+#include "driver/gpio.h"
+#include "mqtt.h"
 
+adc_oneshot_unit_handle_t adc1_handle;
+ledc_channel_t led_channels[3] = { CHANNEL_RED, CHANNEL_GREEN, CHANNEL_BLUE };
 
-//First configure the timer
-ledc_timer_config_t timer_config = {
+// Static configuration structures - only used within this file
+static ledc_timer_config_t timer_config = {
     .speed_mode = LEDC_HIGH_SPEED_MODE,
     .timer_num =  LEDC_TIMER_0,
     .duty_resolution = RESOLUTION,
@@ -11,8 +15,7 @@ ledc_timer_config_t timer_config = {
     .clk_cfg = LEDC_AUTO_CLK
 };
 
-//Then configure the chanel
-ledc_channel_config_t channel_config_red = {
+static ledc_channel_config_t channel_config_red = {
     .gpio_num   = PIN_RED,
     .speed_mode = LEDC_HIGH_SPEED_MODE,
     .channel    = CHANNEL_RED,
@@ -21,7 +24,7 @@ ledc_channel_config_t channel_config_red = {
     .hpoint     = 0
 };
 
-ledc_channel_config_t channel_config_green = {
+static ledc_channel_config_t channel_config_green = {
     .gpio_num   = PIN_GREEN,
     .speed_mode = LEDC_HIGH_SPEED_MODE,
     .channel    = LEDC_CHANNEL_1,
@@ -30,7 +33,7 @@ ledc_channel_config_t channel_config_green = {
     .hpoint     = 0
 };
 
-ledc_channel_config_t channel_config_blue = {
+static ledc_channel_config_t channel_config_blue = {
     .gpio_num   = PIN_BLUE,
     .speed_mode = LEDC_HIGH_SPEED_MODE,
     .channel    = LEDC_CHANNEL_2,
@@ -39,12 +42,11 @@ ledc_channel_config_t channel_config_blue = {
     .hpoint     = 0
 };
 
-adc_oneshot_unit_handle_t adc1_handle;
-adc_oneshot_unit_init_cfg_t init_cfg = {
+static adc_oneshot_unit_init_cfg_t init_cfg = {
     .unit_id = ADC_UNIT_1,
 };
 
-adc_oneshot_chan_cfg_t config = {
+static adc_oneshot_chan_cfg_t config = {
     .atten = ADC_ATTEN_DB_12,
     .bitwidth = ADC_BITWIDTH_DEFAULT,
 };
@@ -63,6 +65,9 @@ void setupChannels()
     ESP_ERROR_CHECK(ledc_channel_config(&channel_config_red));
     ESP_ERROR_CHECK(ledc_channel_config(&channel_config_green));
     ESP_ERROR_CHECK(ledc_channel_config(&channel_config_blue));
+    
+    printf("\nChannels Setup...\n");
+
 }
 
 void setDutyCycle(ledc_channel_t channel, uint32_t duty_cycle)
@@ -74,9 +79,17 @@ void setDutyCycle(ledc_channel_t channel, uint32_t duty_cycle)
 
 void setColorByRGB(uint8_t colors[3], ledc_channel_t led_channels[3])
 {
-    for(uint8_t i = 0; i < 3; i++)
-    {
-        uint32_t duty_cycle = colors[i]/255;  
-        setDutyCycle(led_channels[i], duty_cycle);
-    }
+    setDutyCycle(led_channels[0], colors[0]);
+    setDutyCycle(led_channels[1], colors[1]);
+    setDutyCycle(led_channels[2], colors[2]);
+
+    char json[64];
+    snprintf(json, sizeof(json),
+    "{\"r\":%d,\"g\":%d,\"b\":%d}", colors[0], colors[1], colors[2]);
+
+    mqttPublishState(
+        "home/esp32/rgb/state",
+        json,
+        true
+    );
 }
