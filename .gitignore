@@ -78,9 +78,8 @@ Desktop.ini
 schematics/esp_led/~esp_led.kicad_sch.lck
 schematics/esp_led/#auto_saved_files#
 .devcontainer/devcontainer.json
+.vscode/
 .clangd
-.vscode/c_cpp_properties.json
-.vscode/launch.json
-.vscode/settings.json
 .devcontainer/Dockerfile
 *.zip
+.env

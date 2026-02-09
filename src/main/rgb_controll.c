@@ -5,8 +5,9 @@
 
 adc_oneshot_unit_handle_t adc1_handle;
 ledc_channel_t led_channels[3] = { CHANNEL_RED, CHANNEL_GREEN, CHANNEL_BLUE };
+ledc_channel_t led_channels_2[3] = {CHANNEL_RED_2, CHANNEL_GREEN_2, CHANNEL_BLUE_2};
 
-// Static configuration structures - only used within this file
+
 static ledc_timer_config_t timer_config = {
     .speed_mode = LEDC_HIGH_SPEED_MODE,
     .timer_num =  LEDC_TIMER_0,
@@ -15,6 +16,7 @@ static ledc_timer_config_t timer_config = {
     .clk_cfg = LEDC_AUTO_CLK
 };
 
+//FIRST OUTPUT -----------------------------------------------------
 static ledc_channel_config_t channel_config_red = {
     .gpio_num   = PIN_RED,
     .speed_mode = LEDC_HIGH_SPEED_MODE,
@@ -27,7 +29,7 @@ static ledc_channel_config_t channel_config_red = {
 static ledc_channel_config_t channel_config_green = {
     .gpio_num   = PIN_GREEN,
     .speed_mode = LEDC_HIGH_SPEED_MODE,
-    .channel    = LEDC_CHANNEL_1,
+    .channel    = CHANNEL_GREEN,
     .timer_sel  = LEDC_TIMER_0,
     .duty       = 0,
     .hpoint     = 0
@@ -36,12 +38,41 @@ static ledc_channel_config_t channel_config_green = {
 static ledc_channel_config_t channel_config_blue = {
     .gpio_num   = PIN_BLUE,
     .speed_mode = LEDC_HIGH_SPEED_MODE,
-    .channel    = LEDC_CHANNEL_2,
+    .channel    = CHANNEL_BLUE,
     .timer_sel  = LEDC_TIMER_0,
     .duty       = 0,
     .hpoint     = 0
 };
 
+//SECOND OUTPUT -----------------------------------------------------
+static ledc_channel_config_t channel_config_red_2 = {
+    .gpio_num   = PIN_RED_2,
+    .speed_mode = LEDC_HIGH_SPEED_MODE,
+    .channel    = CHANNEL_RED_2,
+    .timer_sel  = LEDC_TIMER_0,
+    .duty       = 0,
+    .hpoint     = 0
+};
+
+static ledc_channel_config_t channel_config_green_2 = {
+    .gpio_num   = PIN_GREEN_2,
+    .speed_mode = LEDC_HIGH_SPEED_MODE,
+    .channel    = CHANNEL_GREEN_2,
+    .timer_sel  = LEDC_TIMER_0,
+    .duty       = 0,
+    .hpoint     = 0
+};
+
+static ledc_channel_config_t channel_config_blue_2 = {
+    .gpio_num   = PIN_BLUE_2,
+    .speed_mode = LEDC_HIGH_SPEED_MODE,
+    .channel    = CHANNEL_BLUE_2,
+    .timer_sel  = LEDC_TIMER_0,
+    .duty       = 0,
+    .hpoint     = 0
+};
+
+//POTENTIOMETER SETUP
 static adc_oneshot_unit_init_cfg_t init_cfg = {
     .unit_id = ADC_UNIT_1,
 };
@@ -55,16 +86,27 @@ void setupChannels()
 {
     //Setup Potentiometer
     ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_cfg, &adc1_handle));
-    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, POTENTIOMETER_ADC_CHANNEL, &config));
+    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, COLOR_POTENTIOMETER_ADC_CHANNEL, &config));
+    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle, BRIGHTNESS_POTENTIOMETER_ADC_CHANNEL, &config));
 
-
-    gpio_set_direction(COLOR_BUTTON, GPIO_MODE_INPUT);
+    gpio_set_direction(COLOR_BUTTON, GPIO_MODE_INPUT); //Pulled high physically
     gpio_set_pull_mode(COLOR_BUTTON, GPIO_FLOATING);
+
+    gpio_set_direction(SELECTOR_SWITCH, GPIO_MODE_INPUT); //Pulled high physically
+    gpio_set_pull_mode(SELECTOR_SWITCH, GPIO_FLOATING);
+
+    gpio_set_direction(MAIN_SWITCH, GPIO_MODE_INPUT); //Pulled high physically
+    gpio_set_pull_mode(MAIN_SWITCH, GPIO_FLOATING);
+
 
     ESP_ERROR_CHECK(ledc_timer_config(&timer_config));
     ESP_ERROR_CHECK(ledc_channel_config(&channel_config_red));
     ESP_ERROR_CHECK(ledc_channel_config(&channel_config_green));
     ESP_ERROR_CHECK(ledc_channel_config(&channel_config_blue));
+
+    ESP_ERROR_CHECK(ledc_channel_config(&channel_config_red_2));
+    ESP_ERROR_CHECK(ledc_channel_config(&channel_config_green_2));
+    ESP_ERROR_CHECK(ledc_channel_config(&channel_config_blue_2));
     
     printf("\nChannels Setup...\n");
 
@@ -84,9 +126,9 @@ void setColorByRGB(uint8_t colors[3], ledc_channel_t led_channels[3], uint8_t br
         colors[0] = colors[1] = colors[2] = 0;
     } else 
     {
-        colors[0] = (colors[0] * brightness) / 255;
-        colors[1] = (colors[1] * brightness) / 255;
-        colors[2] = (colors[2] * brightness) / 255;
+        colors[0] = colors[0] * brightness;
+        colors[1] = colors[1] * brightness;
+        colors[2] = colors[2] * brightness;
     }
 
     setDutyCycle(led_channels[0], colors[0]);

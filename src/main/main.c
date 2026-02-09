@@ -33,9 +33,11 @@ void app_main(void)
     uint8_t previous_button_state = 0;
     int analog_previous_adc = 0;
 
-    uint8_t current_colors[3] = {0,0,0};
+    uint8_t colors_strip1[3] = {0, 0, 0};
+    uint8_t colors_strip2[3] = {0, 0, 0};
     uint8_t brightness = 255; 
     bool light_on = true;
+    bool strip_selected = false;  // false = strip1, true = strip2
 
     control_mode_t mode = MODE_REMOTE;
     unsigned long last_change_time = esp_timer_get_time() / 1000;
@@ -54,26 +56,51 @@ void app_main(void)
             last_change_time = current_time;
         }
 
-        int adc_raw;
-        esp_err_t r = adc_oneshot_read(adc1_handle, POTENTIOMETER_ADC_CHANNEL, &adc_raw);
+        int color_adc_raw;
+        esp_err_t r = adc_oneshot_read(adc1_handle, COLOR_POTENTIOMETER_ADC_CHANNEL, &color_adc_raw);
         if (r != ESP_OK) {
-            adc_raw = 0;
+            color_adc_raw = 0;
             printf("failed to read ADC\n");
         }
 
+        int main_switch = (gpio_get_level(MAIN_SWITCH) == 0);
+        light_on = main_switch ? true : false;
+
+        int led_switch = (gpio_get_level(SELECTOR_SWITCH) == 0);
+        strip_selected = led_switch ? true : false;
+
+        int pressed = (gpio_get_level(COLOR_BUTTON) == 0);
+        if (pressed && !previous_button_state) 
+        {
+            last_change_time = current_time;
+
+            analog_selected_color = (analog_selected_color + 1) % 3;  // Only RGB, not 4 colors
+            printf("Selected color: %d (Strip %d)\n", analog_selected_color, strip_selected + 1);
+
+            mode = MODE_MANUAL;
+            last_adc_activity = current_time;
+
+        }
+        previous_button_state = pressed;
+
         if(mode == MODE_MANUAL)
         {
-            if(abs(adc_raw - analog_previous_adc) >= ADC_THRESHOLD)
+            if(abs(color_adc_raw - analog_previous_adc) >= ADC_THRESHOLD)
             {
                 last_change_time = current_time;
                 last_adc_activity = current_time;
                 
-                analog_previous_adc = adc_raw;
-                uint32_t value = (adc_raw * 255) / 4095;
-                current_colors[analog_selected_color] = value;
+                analog_previous_adc = color_adc_raw;
+                uint32_t value = (color_adc_raw * 255) / 4095;
+                
+                // Update selected color for selected strip
+                uint8_t *target_colors = strip_selected ? colors_strip2 : colors_strip1;
+                ledc_channel_t *target_channels = strip_selected ? led_channels_2 : led_channels;
+                
+                target_colors[analog_selected_color] = value;
 
-                printf("New adc: %d\n", adc_raw); //For Debugging
-                setColorByRGB(current_colors, led_channels, brightness, light_on);
+                printf("New adc: %d (Strip %d, Color %d)\n", color_adc_raw, strip_selected + 1, analog_selected_color);
+                setColorByRGB(target_colors, target_channels, brightness, light_on);
             } 
             else if(current_time - last_adc_activity >= ADC_IDLE_TIMEOUT)
             {
@@ -82,19 +109,6 @@ void app_main(void)
             }
         }
 
-        int pressed = (gpio_get_level(COLOR_BUTTON) == 0);
-        if (pressed && !previous_button_state) 
-        {
-            last_change_time = current_time;
-
-            analog_selected_color = (analog_selected_color + 1) % 4;
-            printf("Selected color: %d\n", analog_selected_color);
-
-            mode = MODE_MANUAL;
-            last_adc_activity = current_time;
-
-        }
-        previous_button_state = pressed;
 
         vTaskDelay(pdMS_TO_TICKS(10));
     }

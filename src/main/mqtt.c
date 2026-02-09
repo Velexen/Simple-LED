@@ -21,17 +21,30 @@ static void mqttEventHandler(void *arg,
     case MQTT_EVENT_CONNECTED:
         ESP_LOGI(TAG, "MQTT connected");
 
-        const char *discovery_topic = "homeassistant/light/esp32_rgb/config";
-        const char *payload = "{\"name\":\"ESP32 RGB\","
+        // Discovery for Strip 1
+        const char *discovery_topic_1 = "homeassistant/light/esp32_rgb_strip1/config";
+        const char *payload_1 = "{\"name\":\"ESP32 RGB Strip 1\","
                             "\"schema\":\"json\","
-                            "\"command_topic\":\"home/esp32/rgb/set\","
-                            "\"state_topic\":\"home/esp32/rgb/state\","
+                            "\"command_topic\":\"home/esp32/rgb_strip1/set\","
+                            "\"state_topic\":\"home/esp32/rgb_strip1/state\","
                             "\"availability_topic\":\"home/esp32/availability\","
                             "\"payload_available\":\"online\","
                             "\"payload_not_available\":\"offline\","
                             "\"supported_color_modes\":[\"rgb\"]}";
 
-        esp_mqtt_client_publish(client, discovery_topic, payload, 0, 1, true);
+        // Discovery for Strip 2
+        const char *discovery_topic_2 = "homeassistant/light/esp32_rgb_strip2/config";
+        const char *payload_2 = "{\"name\":\"ESP32 RGB Strip 2\","
+                            "\"schema\":\"json\","
+                            "\"command_topic\":\"home/esp32/rgb_strip2/set\","
+                            "\"state_topic\":\"home/esp32/rgb_strip2/state\","
+                            "\"availability_topic\":\"home/esp32/availability\","
+                            "\"payload_available\":\"online\","
+                            "\"payload_not_available\":\"offline\","
+                            "\"supported_color_modes\":[\"rgb\"]}";
+
+        esp_mqtt_client_publish(client, discovery_topic_1, payload_1, 0, 1, true);
+        esp_mqtt_client_publish(client, discovery_topic_2, payload_2, 0, 1, true);
 
         esp_mqtt_client_publish(
             client,
@@ -40,13 +53,20 @@ static void mqttEventHandler(void *arg,
             0, 1, true
         );
 
-        esp_mqtt_client_subscribe(
-            client, "home/esp32/rgb/set", 1
+        esp_mqtt_client_subscribe(client, "home/esp32/rgb_strip1/set", 1);
+        esp_mqtt_client_subscribe(client, "home/esp32/rgb_strip2/set", 1);
+
+        esp_mqtt_client_publish(
+            client,
+            "home/esp32/rgb_strip1/state",
+            "{\"state\":\"ON\",\"brightness\":255,"
+            "\"color\":{\"r\":0,\"g\":0,\"b\":0}}", 
+            0, 1, true
         );
 
         esp_mqtt_client_publish(
             client,
-            "home/esp32/rgb/state",
+            "home/esp32/rgb_strip2/state",
             "{\"state\":\"ON\",\"brightness\":255,"
             "\"color\":{\"r\":0,\"g\":0,\"b\":0}}", 
             0, 1, true
@@ -56,47 +76,76 @@ static void mqttEventHandler(void *arg,
     case MQTT_EVENT_DATA:
         ESP_LOGI(TAG, "Topic: %.*s", event->topic_len, event->topic);
 
-        if(strncmp(event->topic, "home/esp32/rgb/set", event->topic_len) == 0)
+        char topic_str[64];
+        memcpy(topic_str, event->topic, event->topic_len);
+        topic_str[event->topic_len] = '\0';
+
+        ledc_channel_t *target_channels = NULL;
+        char *state_topic = NULL;
+
+        if(strcmp(topic_str, "home/esp32/rgb_strip1/set") == 0)
         {
-            char payload[32];
-            memcpy(payload, event->data, event->data_len);
-            payload[event->data_len] = '\0';
-
-            cJSON *root = cJSON_Parse(payload);
-            if (!root) break;
-
-            bool light_on = true;
-            cJSON *state = cJSON_GetObjectItem(root, "state");            
-            if (cJSON_IsString(state) && state->valuestring) 
-            {
-                if (strcmp(state->valuestring, "OFF") == 0) 
-                {
-                    light_on = false;
-                }
-            }
-
-            uint8_t brightness = 255;
-            cJSON *j_brightness = cJSON_GetObjectItem(root, "brightness");
-            if(cJSON_IsNumber(j_brightness))
-            {
-                brightness = j_brightness->valueint;
-            }
-
-            uint8_t rgb[3] = {0, 0, 0};
-            cJSON *color = cJSON_GetObjectItem(root, "color");
-            if (cJSON_IsObject(color)) {
-                cJSON *r = cJSON_GetObjectItem(color, "r");
-                cJSON *g = cJSON_GetObjectItem(color, "g");
-                cJSON *b = cJSON_GetObjectItem(color, "b");
-
-                if (cJSON_IsNumber(r)) rgb[0] = r->valueint;
-                if (cJSON_IsNumber(g)) rgb[1] = g->valueint;
-                if (cJSON_IsNumber(b)) rgb[2] = b->valueint;
-            }
-
-            setColorByRGB(rgb, led_channels, brightness, light_on);
-            cJSON_Delete(root);
+            target_channels = led_channels;
+            state_topic = "home/esp32/rgb_strip1/state";
         }
+        else if(strcmp(topic_str, "home/esp32/rgb_strip2/set") == 0)
+        {
+            target_channels = led_channels_2;
+            state_topic = "home/esp32/rgb_strip2/state";
+        }
+        else
+        {
+            break;
+        }
+
+        char payload[64];
+        memcpy(payload, event->data, event->data_len);
+        payload[event->data_len] = '\0';
+
+        cJSON *root = cJSON_Parse(payload);
+        if (!root) break;
+
+        bool light_on = true;
+        cJSON *state = cJSON_GetObjectItem(root, "state");            
+        if (cJSON_IsString(state) && state->valuestring) 
+        {
+            if (strcmp(state->valuestring, "OFF") == 0) 
+            {
+                light_on = false;
+            }
+        }
+
+        uint8_t brightness = 255;
+        cJSON *j_brightness = cJSON_GetObjectItem(root, "brightness");
+        if(cJSON_IsNumber(j_brightness))
+        {
+            brightness = j_brightness->valueint;
+        }
+
+        uint8_t rgb[3] = {0, 0, 0};
+        cJSON *color = cJSON_GetObjectItem(root, "color");
+        if (cJSON_IsObject(color)) {
+            cJSON *r = cJSON_GetObjectItem(color, "r");
+            cJSON *g = cJSON_GetObjectItem(color, "g");
+            cJSON *b = cJSON_GetObjectItem(color, "b");
+
+            if (cJSON_IsNumber(r)) rgb[0] = r->valueint;
+            if (cJSON_IsNumber(g)) rgb[1] = g->valueint;
+            if (cJSON_IsNumber(b)) rgb[2] = b->valueint;
+        }
+
+        setColorByRGB(rgb, target_channels, brightness, light_on);
+
+        // Publish state back
+        char state_payload[128];
+        snprintf(state_payload, sizeof(state_payload),
+                "{\"state\":\"%s\",\"brightness\":%d,"
+                "\"color\":{\"r\":%d,\"g\":%d,\"b\":%d}}", 
+                light_on ? "ON" : "OFF", brightness, rgb[0], rgb[1], rgb[2]);
+        
+        mqttPublishState(state_topic, state_payload, true);
+
+        cJSON_Delete(root);
         break;
 
     case MQTT_EVENT_DISCONNECTED:

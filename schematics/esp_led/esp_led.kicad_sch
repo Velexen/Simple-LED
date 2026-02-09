@@ -3334,6 +3334,12 @@
 		(uuid "3aa29711-a227-44fe-9b00-8fe5506d3463")
 	)
 	(junction
+		(at 240.03 62.23)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "564a1f34-463a-4606-84b8-ceb4b92bad93")
+	)
+	(junction
 		(at 26.67 72.39)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -3839,6 +3845,16 @@
 	)
 	(wire
 		(pts
+			(xy 240.03 59.69) (xy 240.03 62.23)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6a36c99d-45fc-4df3-9f23-63b6516b8460")
+	)
+	(wire
+		(pts
 			(xy 168.91 99.06) (xy 168.91 106.68)
 		)
 		(stroke
@@ -3906,6 +3922,16 @@
 			(type default)
 		)
 		(uuid "75dfe011-dee1-410f-99f7-414e32ddb55e")
+	)
+	(wire
+		(pts
+			(xy 240.03 62.23) (xy 240.03 63.5)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "767e567a-8cf8-43e5-a125-eb12be827646")
 	)
 	(wire
 		(pts
@@ -5108,8 +5134,8 @@
 			(justify right bottom)
 		)
 		(uuid "f3a4f3e4-dbdf-48a4-bddd-5de25075f50e")
-		(property "Netclass" "Color_Btn_1"
-			(at 118.11 109.22 0)
+		(property "Netclass" "Color_Btn"
+			(at 116.078 109.22 0)
 			(effects
 				(font
 					(size 1.27 1.27)

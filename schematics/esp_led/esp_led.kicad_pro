@@ -502,7 +502,7 @@
         "Selector_Sw"
       ],
       "unconnected-(J1-IO17-Pad22)": [
-        "Color_Btn_1"
+        "Color_Btn"
       ],
       "unconnected-(J1-IO18-Pad24)": [
         "BLUE_PWM"
