@@ -37,9 +37,9 @@
         "other_text_thickness": 0.15,
         "other_text_upright": false,
         "pads": {
-          "drill": 0.8,
-          "height": 1.27,
-          "width": 2.54
+          "drill": 3.0,
+          "height": 3.5,
+          "width": 3.5
         },
         "silk_line_width": 0.1,
         "silk_text_italic": false,
@@ -51,7 +51,13 @@
           "min_clearance": 0.5
         }
       },
-      "diff_pair_dimensions": [],
+      "diff_pair_dimensions": [
+        {
+          "gap": 0.0,
+          "via_gap": 0.0,
+          "width": 0.0
+        }
+      ],
       "drc_exclusions": [],
       "meta": {
         "version": 2
@@ -180,7 +186,9 @@
           "td_width_to_size_filter_ratio": 0.9
         }
       ],
-      "track_widths": [],
+      "track_widths": [
+        0.0
+      ],
       "tuning_pattern_settings": {
         "diff_pair_defaults": {
           "corner_radius_percentage": 80,
@@ -207,7 +215,12 @@
           "spacing": 0.6
         }
       },
-      "via_dimensions": [],
+      "via_dimensions": [
+        {
+          "diameter": 0.0,
+          "drill": 0.0
+        }
+      ],
       "zones_allow_external_fillets": false
     },
     "ipc2581": {
@@ -479,98 +492,7 @@
       "version": 4
     },
     "net_colors": null,
-    "netclass_assignments": {
-      "Net-(Q1-G)": [
-        "BLUE_PWM"
-      ],
-      "Net-(Q2-G)": [
-        "RED_PWM"
-      ],
-      "Net-(Q3-G)": [
-        "GREEN_PWM"
-      ],
-      "Net-(Q4-G)": [
-        "BLUE_PWM_2"
-      ],
-      "Net-(Q5-G)": [
-        "RED_PWM_2"
-      ],
-      "Net-(Q6-G)": [
-        "GREEN_PWM_2"
-      ],
-      "unconnected-(J1-IO16-Pad21)": [
-        "Selector_Sw"
-      ],
-      "unconnected-(J1-IO17-Pad22)": [
-        "Color_Btn"
-      ],
-      "unconnected-(J1-IO18-Pad24)": [
-        "BLUE_PWM"
-      ],
-      "unconnected-(J1-IO19-Pad25)": [
-        "GREEN_PWM"
-      ],
-      "unconnected-(J1-IO21-Pad26)": [
-        "RED_PWM"
-      ],
-      "unconnected-(J1-IO25-Pad8)": [
-        "RED_PWM_2"
-      ],
-      "unconnected-(J1-IO26-Pad9)": [
-        "GREEN_PWM_2"
-      ],
-      "unconnected-(J1-IO27-Pad10)": [
-        "BLUE_PWM_2"
-      ],
-      "unconnected-(J1-IO33-Pad7)": [
-        "Main Swtich"
-      ],
-      "unconnected-(J1-IO34-Pad4)": [
-        "Color_Pot"
-      ],
-      "unconnected-(J1-IO35-Pad5)": [
-        "Brightness_Pot"
-      ],
-      "unconnected-(J3-Pin_1-Pad1)": [
-        "LED_24V"
-      ],
-      "unconnected-(J5-Pin_1-Pad1)": [
-        "LED_24V"
-      ],
-      "unconnected-(R1-Pad1)": [
-        "RED_PWM"
-      ],
-      "unconnected-(R1-Pad2)": [
-        "Main_Sw"
-      ],
-      "unconnected-(R2-Pad1)": [
-        "GREEN_PWM"
-      ],
-      "unconnected-(R2-Pad2)": [
-        "Color_Btn"
-      ],
-      "unconnected-(R3-Pad1)": [
-        "BLUE_PWM"
-      ],
-      "unconnected-(R3-Pad2)": [
-        "Selector_Sw"
-      ],
-      "unconnected-(R4-Pad2)": [
-        "Color_Btn"
-      ],
-      "unconnected-(R5-Pad2)": [
-        "Power_Sw"
-      ],
-      "unconnected-(RV1-Pad2)": [
-        "Color_Pot"
-      ],
-      "unconnected-(RV2-Pad2)": [
-        "Brightness_Pot"
-      ],
-      "unconnected-(SW1-Pad2)": [
-        "LED_24V"
-      ]
-    },
+    "netclass_assignments": null,
     "netclass_patterns": []
   },
   "pcbnew": {
