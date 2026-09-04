@@ -83,3 +83,6 @@ schematics/esp_led/#auto_saved_files#
 .devcontainer/Dockerfile
 *.zip
 .env
+schematics/ESP-LED/History/
+schematics/ESP-LED/__Previews/
+schematics/ESP-LED/Project Logs for ESP-LED/
