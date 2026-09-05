@@ -1,3 +1,6 @@
-#pragma once
+#ifndef WIFI_H
+#define WIFI_H
 
-void wifiInit(void);
+void wifi_init(void);
+
+#endif
