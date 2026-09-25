@@ -1,0 +1,17 @@
+// LED Strip 1
+#define LED1_R_PIN GPIO_NUM_19
+#define LED1_G_PIN GPIO_NUM_18
+#define LED1_B_PIN GPIO_NUM_21
+
+//LED Strip 2
+#define LED2_R_PIN GPIO_NUM_26
+#define LED2_G_PIN GPIO_NUM_25
+#define LED2_B_PIN GPIO_NUM_27
+
+//Physical Switches
+#define MAIN_SWITCH_PIN GPIO_NUM_17
+#define STRIP_SEL_PIN GPIO_NUM_16
+
+//Potentiometers
+#define COLOR_POT GPIO_NUM_34
+#define BRIGHTNESS_POT GPIO_NUM_35
